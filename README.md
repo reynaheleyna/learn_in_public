@@ -1,8 +1,7 @@
 
-# Learning in Public: FinOps, JavaScript & SQL (2025)
+# Learning in Public
 
 Welcome to my "Learning in Public" repository!  
-This space documents my journey as I learn JavaScript and SQL throughout 2025.  
 Each topic has its own folder with notes, code, and resources.
 
 ## 📂 Folder Structure
@@ -11,6 +10,8 @@ Each topic has its own folder with notes, code, and resources.
   - All things JavaScript: notes, challenges, projects, and experiments.
 - `/sql/`  
   - All things SQL: queries, schema designs, exercises, and learnings.
+- `/finops/`
+  - All things finops and devops governance
 - `/resources/`  
   - Helpful links, articles, and reference materials.
 - `/reflections/`  
