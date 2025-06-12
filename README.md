@@ -1,5 +1,5 @@
 
-# Learning in Public: JavaScript & SQL (2025)
+# Learning in Public: FinOps, JavaScript & SQL (2025)
 
 Welcome to my "Learning in Public" repository!  
 This space documents my journey as I learn JavaScript and SQL throughout 2025.  
