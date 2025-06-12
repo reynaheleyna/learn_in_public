@@ -10,7 +10,7 @@ Each topic has its own folder with notes, code, and resources.
   - All things JavaScript: notes, challenges, projects, and experiments.
 - `/sql/`  
   - All things SQL: queries, schema designs, exercises, and learnings.
-- `/finops/`
+- `/devops_finops/`
   - All things finops and devops governance
 - `/resources/`  
   - Helpful links, articles, and reference materials.
