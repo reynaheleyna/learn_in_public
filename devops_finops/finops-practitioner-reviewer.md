@@ -22,6 +22,12 @@ Portmanteaou of Finance and DevOps - business and engineering.
 
 FinOps is about **getting the most value out of cloud to drive efficient growth**.
 
+80% of organizations will overshoot IaaS [Infrastructure as a Service] budgets due to a lack of cloud cost optimization governance and misguided upfront spend commitments. - DevOps.com
+
+"A successful FinOps practice expands and accelerates the business benefits made possible by cloud. Since then, the practice of FinOps is increasingly being applied to IT spend in addition to public cloud (what we refer to as Cloud+)... Investment in FinOps leads to better financial management of cloud services. This ensures cloud initiatives deliver measurable business value, and each of these value-driven initiatives gives the cloud value flywheel another push." 
+
+
+
 ## Adopting FinOps
 
 3 Ways: 
