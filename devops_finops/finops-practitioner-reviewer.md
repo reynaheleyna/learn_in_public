@@ -45,13 +45,18 @@ Capabilities - describes how to achieve domains
 - Take advantage of the variable cost model of the cloud. 
 
 ### Phases
-- Inform
-- Optimize
-- Operate
+- Inform (visibility and allocation)
+- Optimize (rates and usage)
+- Operate (continuous improvement and usage)
 (https://www.finops.org/framework/phases/)
 
 
 ### Domains with its Capabilities
+https://www.finops.org/framework/domains/ and https://www.finops.org/framework/capabilities/ 
+
+
+Domains are outcomes of the FinOps practice. 
+
 ##### Understand Usage and Cost
 - Data Ingestion 
 - Allocation
@@ -83,7 +88,41 @@ Capabilities - describes how to achieve domains
 - FinOps Tools and Services
 - Intersecting Disciplines
 
+### Personas
+Personas represent categories of stakeholder groups that must collaborate to perform FinOps successfully, not just individual people. In a complex organization, a Persona may represent many people in various related roles. In smaller organizations, a single person may perform the duties of multiple Personas. 
 
+https://www.finops.org/framework/personas/ 
+
+#### Core Personas
+- FinOps Practitioner
+- Leadership
+- Product
+- Engineering
+- Finance
+- Procurement
+
+#### Allied Personas
+-ITSM/ITIL
+- ITAM
+- Sustainability
+- Security
+- ITFM / TBM
+
+### Maturity Model
+- Crawl
+- Walk
+- Run 
+
+Gall’s law tells us that complex processes that work have evolved from simple processes that work; they are not designed from scratch. Do not attempt to build full solutions, rather, build only the amount of solution that you need in any given case.
+
+### Tools
+FinOps Tool refers to any of the cloud provider or third-party software packages that support any of the FinOps Capabilities.
+FinOps Service refers to a third-party service that delivers outcomes related to the FinOps Capabilities.
+
+Types of Tools
+- Cloud Provider Cost Management Tools Native
+- FinOps Platform and Tooling (critical abstraction layer between you and the regularly changing landscape of multi-cloud billing data.) 
+- Homegrown Tooling (built from scratch but often built on top of existing business intelligence)
 
 ## Adopting FinOps
 
@@ -190,6 +229,7 @@ Decision and Continuity - Monthly Chart and KPI tracker of FinOps activities ove
 
 ## Useful Links
 - Capex versus Opex in the Cloud https://www.cloudzero.com/blog/capex-vs-opex/ 
+- Cloud+ https://www.finops.org/topic/scopes/ 
 - Framework: https://www.finops.org/wp-content/uploads/2025/05/English-FinOps-Framework-2025.pdf 
 - FinOps Asset Library: https://www.finops.org/assets/ 
 - FinOps Glossary https://www.finops.org/assets/terminology/ 
@@ -197,6 +237,7 @@ Decision and Continuity - Monthly Chart and KPI tracker of FinOps activities ove
 - Adopting FinOps https://www.finops.org/wg/adopting-finops/ 
 - FinOps Defined https://www.finops.org/introduction/what-is-finops/
 - FOCUS Consortium https://focus.finops.org
+- https://www.finops.org/wg/building-maintaining-healthy-working-relationships-for-finops-practitioners/ 
 
 # References for my Notes
 - Storment and Fuller. Cloud FinOps, 2nd Edition
