@@ -26,6 +26,63 @@ FinOps is about **getting the most value out of cloud to drive efficient growth*
 
 "A successful FinOps practice expands and accelerates the business benefits made possible by cloud. Since then, the practice of FinOps is increasingly being applied to IT spend in addition to public cloud (what we refer to as Cloud+)... Investment in FinOps leads to better financial management of cloud services. This ensures cloud initiatives deliver measurable business value, and each of these value-driven initiatives gives the cloud value flywheel another push." 
 
+## FinOps Framework
+
+Business + Technology 
+Scopes - Context for Practitioners to Adopt the framework
+Core Personas are always engaged in a FinOps Practice (Engineering, Practitioner, Finance, Leadership, Procurement, Product)
+Allied Personas Support a FinOps Practice (ITFM, ITAM, ITSM, Security, Sustainability)
+
+Domains - outcomes of a FinOps practice
+Capabilities - describes how to achieve domains
+
+### Principles
+- Teams need to collaborate
+- Business value drives technology decisions
+- Everyone takes ownership for their technology usage 
+- FinOps data should be accessible, timely, and accurate 
+- FinOps should be enabled centrally
+- Take advantage of the variable cost model of the cloud. 
+
+### Phases
+- Inform
+- Optimize
+- Operate
+(https://www.finops.org/framework/phases/)
+
+
+### Domains with its Capabilities
+##### Understand Usage and Cost
+- Data Ingestion 
+- Allocation
+- Reporting and Analytics
+- Anomaly Management
+
+##### Quantify Business Value
+- Planning and Estimating
+- Forecasting
+- Budgeting
+- Benchmarking
+- Unit Economics
+
+
+#### Optimize Usage and Cost
+- Architecting for Cloud
+- Rate Optimization
+- Cloud Sustainability
+- Workload Optimization
+- Licensing and SaaS
+
+#### Manage the FinOps Practice
+- FinOps Practice Operations
+- FinOps Education and Enablement
+- Policy and Governance
+- Invoicing and Chargeback 
+- FinOps Assessment 
+- Onboarding Workloads
+- FinOps Tools and Services
+- Intersecting Disciplines
+
 
 
 ## Adopting FinOps
