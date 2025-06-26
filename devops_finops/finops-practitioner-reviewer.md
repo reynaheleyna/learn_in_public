@@ -51,7 +51,7 @@ Capabilities - describes how to achieve domains
 (https://www.finops.org/framework/phases/)
 
 
-### Domains with its Capabilities
+## Domains with its Capabilities
 https://www.finops.org/framework/domains/ and https://www.finops.org/framework/capabilities/ 
 
 
@@ -88,7 +88,7 @@ Domains are outcomes of the FinOps practice.
 - FinOps Tools and Services
 - Intersecting Disciplines
 
-### Personas
+## Personas
 Personas represent categories of stakeholder groups that must collaborate to perform FinOps successfully, not just individual people. In a complex organization, a Persona may represent many people in various related roles. In smaller organizations, a single person may perform the duties of multiple Personas. 
 
 https://www.finops.org/framework/personas/ 
@@ -123,6 +123,12 @@ Types of Tools
 - Cloud Provider Cost Management Tools Native
 - FinOps Platform and Tooling (critical abstraction layer between you and the regularly changing landscape of multi-cloud billing data.) 
 - Homegrown Tooling (built from scratch but often built on top of existing business intelligence)
+
+## Anatomy of a Cloud Bill
+Coming Soon
+
+## Data in the Path
+
 
 ## Adopting FinOps
 
@@ -225,7 +231,36 @@ Decision and Continuity - Monthly Chart and KPI tracker of FinOps activities ove
 - Distribution of reports
 - Routine FinOps Meetings
 
-## 
+### FinOps Team and Culture
+
+The State of FinOps survey respondents indicate that CTOs are the most likely role to report to. CIOs leading FinOps teams continue to diminish over time, while CFOs steadily grow in their role as part of the reporting structure. 
+
+Comunicators
+Collaborators
+Analysts
+Influencers
+
+Adhoc(anoomaly and esimate requests)
+BAU(reservation renewals, monthlybilling, cadence prep and delivery with teams)
+Planned (new dashboard and new training videos)
+
+#### Building Trust
+- Communication
+- Accentuating Positives
+- Consistency in Action
+- Openness and Honesty
+- Keeping Comitments
+
+#### Variety of
+- Backgrounds
+- Points of view
+- Motivations
+- Experiences
+- Biases
+- Vocabularies
+- Ezpertise
+
+
 
 ## Useful Links
 - Capex versus Opex in the Cloud https://www.cloudzero.com/blog/capex-vs-opex/ 
