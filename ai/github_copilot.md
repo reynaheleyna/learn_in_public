@@ -49,6 +49,39 @@
 5. Slash Commands
 6. Agents (ex. @terminal, @workspace, etc.)
 
+## Copilot Spaces
+- Context
+- System and Standards
+- Custom Instructions per Space
+- Shared across Teams
+
 ## Useful References
 - https://azureanimations.github.io/ 
-- 
+- https://copilot.github.trust.page/ 
+- https://agentskills.io/specification 
+- https://learn.microsoft.com/en-us/credentials/certifications/github-copilot/?practice-assessment-type=certification
+- https://github.com/features/copilot/plans
+- https://docs.github.com/en/get-started/learning-about-github/about-github-advanced-security
+- https://docs.github.com/en/code-security/code-scanning/introduction-to-code-scanning 
+- https://docs.github.com/en/code-security/secret-scanning/about-secret-scanning 
+- https://docs.github.com/en/code-security/dependabot/dependabot-alerts/about-dependabot-alerts 
+- https://docs.github.com/en/copilot/reference/ai-models/model-comparison 
+- https://github.com/github/copilot-sdk 
+ 
+## GitHub Copilot Lab Activities
+
+Lab 1 (Module 2) Develop with AI-powered code suggestions by using GitHub Copilot and VS Code : https://learn.microsoft.com/en-us/training/modules/introduction-to-github-copilot/5-exercise?ns-enrollment-type=learningpath&ns-enrollment-id=learn.github-copilot
+ 
+Lab 2 (Module 4) Set up GitHub Copilot to work with Visual Studio Code : https://learn.microsoft.com/en-us/training/modules/advanced-github-copilot/3-exercise-setup
+ 
+Lab 3 (Module 4) Update a web API with GitHub Copilot
+https://learn.microsoft.com/en-us/training/modules/advanced-github-copilot/5-exercise-update-a-web-api
+ 
+Lab 4 (Module 8)  Develop unit tests using GitHub Copilot : https://learn.microsoft.com/en-us/training/modules/develop-unit-tests-using-github-copilot-tools/6-exercise-develop-unit-tests-github-copliot :
+ 
+Lab 5 (Model 11) Update a JavaScript portfolio with GitHub Copilot : https://learn.microsoft.com/en-us/training/modules/introduction-copilot-javascript/5-exercise-javascript-portfolio
+ 
+Lab 6 (Module 12) Update a Python web API with GitHub Copilot : https://learn.microsoft.com/en-us/training/modules/introduction-copilot-python/5-exercise-python-web-api
+ 
+Practice Test: https://learn.microsoft.com/en-us/credentials/certifications/github-copilot/practice/assessment?assessment-type=practice&assessmentId=218035372&practice-assessment-type=
+
