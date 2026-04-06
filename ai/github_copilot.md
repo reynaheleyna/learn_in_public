@@ -1,14 +1,14 @@
 # GitHub and GitHub Copilot
 
 ## Possible SDLC Agentic Roles 
-- Product Owner
-- Project Manager
-- Planner
-- Coder
-- Code Reviewer
-- Architect
-- SME
-- QA
+- **Product Owner**: Defines requirements, prioritizes features, and manages product vision through data-driven insights and stakeholder feedback
+- **Project Manager**: Coordinates timelines, tracks progress, manages dependencies, and facilitates communication across teams
+- **Planner**: Breaks down epics into user stories, identifies risks, estimates effort, and creates actionable implementation roadmaps
+- **Coder**: Writes, debugs, and optimizes code based on specifications while maintaining coding standards and best practices
+- **Code Reviewer**: Analyzes pull requests for quality, security, performance, and adherence to architectural patterns
+- **Architect**: Designs system architecture, ensures scalability, makes technology decisions, and defines integration patterns
+- **SME**: Provides domain expertise, validates solutions, and ensures alignment with business and technical requirements
+- **QA**: Designs test cases, identifies edge cases, validates functionality, and ensures quality standards are met
 
 ## Dev Challenges
 - Increased Complexity
