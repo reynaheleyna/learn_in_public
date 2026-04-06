@@ -1,4 +1,5 @@
 # GitHub and GitHub Copilot
+April 6, 2026
 
 ## Possible SDLC Agentic Roles 
 - **Product Owner**: Defines requirements, prioritizes features, and manages product vision through data-driven insights and stakeholder feedback
@@ -56,6 +57,8 @@
 - Shared across Teams
 
 ## Useful References
+- https://learn.microsoft.com/en-us/azure/devops/boards/github/connect-to-github?view=azure-devops 
+- https://awesome-copilot.github.com/ 
 - https://azureanimations.github.io/ 
 - https://copilot.github.trust.page/ 
 - https://agentskills.io/specification 
