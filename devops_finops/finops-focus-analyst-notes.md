@@ -1168,7 +1168,137 @@ Overview
 
 Commitment Discount columns are specifically related to the FinOps Principle: FinOps should be enabled centrally. In support of this FinOps Principle, rate, commitment, and discount optimization are centralized to take advantage of economies of scale. These columns help identify which commitment discount is being applied when you purchase an item, for example, Savings Plans and Reserved Instances. This will enable analysts to report around utilization and use of commitment discounts in your bills. 
 
+https://www.finops.org/wg/commitment-based-discounts-overview/
+
+Commitment Discount Category
+Indicates whether the commitment discount identified in the CommitmentDiscountId column is based on usage quantity or cost (aka “spend”).
+
+Normalized Column with Allowed Values: 
+
+Spend: Commitment discounts that require a predetermined amount of spend.
+
+Usage: Commitment discounts that require a predetermined amount of usage
+
+Commitment Discount ID
+The identifier assigned to a commitment discount by the provider. Commitment Discount ID is required to understand which of your commitments you've made is being applied/purchased in a charge line.
+
+Commitment Discount Name
+The display name assigned to a commitment discount
+
+Commitment Discount Quantity
+The amount of a commitment discount purchased or accounted for in commitment discount related rows that is denominated in Commitment Discount Units.
+
+Commitment Discount Type
+A provider-assigned identifier for the type of commitment discount applied to the row.
+
+Commitment Discount Status
+Indicates whether the charge corresponds with the consumption of a commitment discount identified in the CommitmentDiscountId column or the unused portion of the committed amount.
+
+Normative Column with Allowed Values: 
+Used: Charges that utilized a specific amount of a commitment-based discount. 
+Unused: Charges that represent the unused portion of the commitment-based discount.
+
+Commitment Discount Unit
+Represents the provider-specified measurement unit indicating how a provider measures the Commitment Discount Quantity of a commitment discount.
+
+Why This Matters
+
+Commitments are complex. One purchase creates hundreds of usage rows. Aggregate wrong and utilization shows 200%. Exclude Unused rows and waste is invisible. Confuse Usage-based (hours) with Spend-based (dollars) commitments and quantity analysis is meaningless. Miss the amortization pattern and chargeback breaks. Understanding commitment structure prevents misreporting.
+
+Analyst Application
+
+Within a FOCUS conformed dataset, commitment discount data is beneficial to a centralized FinOps team working to manage rate commitments. These columns include the billing data needed to monitor and manage rate commitments. An analyst can use this information to look for what is and is not covered by a commitment as well as data to report performance for individual commitments or categories of commitments. 
+
+Additionally, an analyst can use the Commitment Discount Status column to determine the amount of utilization of the commitment discount versus the portion of the commitment discount that went unutilized. It is important to note that the unused lines will only represent the portion of the commitment discount that is no longer available to be utilized (this could be a future optimization opportunity). For example, a Reserved Instance will have an amount of value to be used over time. This is often broken into time periods (windows) where each part of the discount can be applied. If a portion is not used within a specific window, it goes unused. This unused portion is what is displayed in the Commitment Discount Status column.
+
+Best Practices
+
+Always filter Charge Category when aggregating commitment quantities or costs
+Never include both Purchase and Usage in same aggregation or you double-count. Choose based on question: utilization needs Usage, commitment size needs Purchase.
+
+1
+Exclude Purchase rows from savings calculations
+Savings already in Usage rows via amortization. Including Purchase double-counts.
+
+2
+Include Commitment Discount Category in all commitment reports
+Usage vs Spend determines what Commitment Discount Quantity means. Make it clear in reports.
+
+3
+Validate commitment balance over full term
+Sum Purchase quantity should equal sum Usage quantity over complete commitment term. Discrepancies indicate data issues.
+
 ### Location
+
+Location columns identify where resources are deployed and services are delivered. FOCUS provides a two-level geographic hierarchy:
+
+Region ID
+Provider-assigned identifier for an isolated geographic area where a resource is provisioned or a service is provided
+
+Region Name
+A provider-assigned display name for an isolated geographic area where a resource is provisioned or a service is provided. Region Name is commonly used for scenarios like analyzing cost and unit prices based on where resources are deployed
+
+Availability Zone
+A provider-assigned identifier for a physically separated and isolated area within a Region that provides high availability and fault tolerance.
+Availability Zone is commonly used for scenarios like analyzing cross-zone data transfer usage and the corresponding cost based on where resources are deployed
+
+Regions represent distinct geographic locations with independent infrastructure. Availability zones are isolated facilities within a region, designed to protect against localized failures while enabling low-latency connectivity between zones.
+
+Why This Matters
+
+Pricing varies by region. The same SKU often costs different amounts depending on where it runs. Location columns let analysts compare unit prices across regions and identify cost optimization opportunities through geographic placement.
+
+Data residency and compliance require location tracking. Regulations often mandate where data can be stored and processed. These columns enable reporting on geographic distribution to support compliance requirements.
+
+Cross-zone data transfer generates costs. Traffic between availability zones within a region incurs charges. Availability Zone enables analysis of cross-zone data transfer patterns and their associated costs.
+
+Multi-region architectures need geographic cost visibility. Organizations deploying across regions for latency, redundancy, or compliance need to understand cost distribution by location. These columns support regional budget allocation and chargeback.
+
+Null values are intentional, not errors. Some charges are not region-specific. Global services, account-level fees, and support charges may have null Region ID and Region Name values. This is expected behavior, not a data quality issue.
+
+Analyst Application
+
+You can use the Location columns to analyze geographic cost distribution, compare regional pricing, and identify cross-zone data transfer costs.
+
+SELECT RegionName, AvailabilityZone, 
+
+SUM(BilledCost) AS TransferCost 
+
+FROM focus_data 
+
+WHERE ServiceCategory = 'Networking' 
+
+AND BillingPeriodStart >= '2024-01-01' 
+
+AND BillingPeriodEnd < '2024-02-01' 
+
+GROUP BY RegionName, AvailabilityZone
+
+Best Practices
+
+Use Region ID for joins and filtering
+Region ID is the stable, provider-assigned identifier. Use it for programmatic operations and cross-dataset joins.
+
+1
+Use Region Name for reports and dashboards
+Region Name provides human-readable context. Use it for stakeholder-facing reports where readability matters.
+
+2
+Expect null values for global services
+Account-level charges, support fees, and global services are not region-specific. Null location values are valid and expected for these charges.
+
+3
+Include Availability Zone for network cost analysis
+Cross-zone data transfer is a common cost driver. Include Availability Zone when analyzing networking charges to identify optimization opportunities.
+
+4
+Compare unit prices across regions
+The same SKU can have different prices by region. Use Location columns with List Unit Price to identify lower-cost regions for flexible workloads.
+
+5
+Validate RegionId/RegionName consistency
+When Region ID is not null, Region Name must also be not null. If you see mismatches, investigate as a potential data quality issue.
+
 
 ### Resource
 
@@ -1269,6 +1399,22 @@ Service Name provides provider-specific detail. When investigating anomalies or 
 Analyst Application
 
 You can use the Service columns to analyze spend by functional area, compare costs across providers, and investigate service-level trends.
+
+Best Practices for Service Columns
+1. Use Service Category for cross-provider analysis.
+Service Category normalizes provider offerings into consistent functional groups. Use it to compare infrastructure costs across cloud providers.
+2. Use Service Subcategory for workload-type analysis.
+When Service Category is too broad, Service Subcategory distinguishes between workload types like virtual machines vs. containers vs. serverless within Compute.
+3. Use Service Name for provider-specific investigation.
+Service Name identifies the exact provider offering. Use it when drilling into specific services, investigating anomalies, or correlating with provider-specific documentation.
+4. Combine Category and Subcategory for precise filtering.
+Filter by both columns for targeted analysis. For example,
+ServiceCategory = 'Databases' AND ServiceSubcategory = 'Relational Databases'
+isolates traditional SQL database spend.
+5. Validate Subcategory-to-Category relationships.
+Each subcategory has exactly one parent category. If you see "Virtual Machines" under anything other than "Compute", investigate as a potential data quality issue.
+6. Expect "Other" values for emerging services.
+New provider offerings may not fit existing subcategories immediately. "Other (Compute)" or "Other (Databases)" values indicate services awaiting classification.
 
 ### SKU
 
