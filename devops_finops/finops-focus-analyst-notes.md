@@ -713,3 +713,827 @@ This course will cover the description of each column and provide context around
 
 Billing columns capture the financial dimensions of your charges: what you owe, what you would have paid, how much you consumed, and in what currency. FOCUS organizes these into four functional groups: Cost, Unit Price, Consumption, Currency. 
 
+Cost Columns
+
+Cost Columns represent monetary values at different stages of the pricing lifecycle: Billed Cost, Effective Cost, List Price (List Unit Price times Pricing Quantity), Contracted Cost (Contracted Unity Price times Pricing quantity). 
+
+Unit Price Columns Capture Rate Information
+
+List Unit Price (single pricing unit of associated SKU of data generator exclusive of any discounts)
+Contracted Unit Price (agreed upon unit price for a single pricing unit of the associated SKU inclusive of negotiated discounts while excluding commitment based discounts)
+
+Consumption Columns track resource usage independent of pricing. 
+
+Consumed Quantity - volume of usage based on provider measurement
+Consumed Unit - unit of measurement for consumption
+
+
+Currency Column (Billing Currency Column) identifies the monetary denomination
+
+Different FinOps Personas need different cost views. Finance needs Billed Cost for invoice reconciliation. Engineering needs Effective Cost for true resource attribution. Procurement needs List Cost and Contracted Cost to measure negotiation effectiveness.
+
+Billed Cost and Effective Cost serve fundamentally different purposes. Billed Cost matches invoices. Effective Cost distributes prepaid purchases across the resources that consumed them. Summing Effective Cost for a billing period will not match your invoice.
+
+Savings calculations require the right comparison. Comparing Effective Cost to List Cost overstates savings by including negotiated discounts. To measure commitment discount value specifically, compare Effective Cost to Contracted Cost.
+
+Consumed Quantity differs from Pricing Quantity. Consumed Quantity reflects actual resource usage at provider-measured granularity. Pricing Quantity reflects the billable units after pricing rules like block pricing. A 500-token consumption might be priced as 1 block of 1,000 tokens.
+
+Unit prices enable rate verification. List Unit Price and Contracted Unit Price let analysts validate that providers are applying correct rates. The formulas are deterministic: List Unit Price × Pricing Quantity = List Cost; Contracted Unit Price × Pricing Quantity = Contracted Cost.
+
+Multi-currency environments require explicit currency handling. Organizations with global deployments may have charges in multiple currencies. Billing Currency identifies the denomination for each charge, enabling proper aggregation and currency conversion when needed. All cost columns are denominated in the Billing Currency.
+
+Aggregations
+
+When aggregating for savings calculations, it's important to exclude one-time or recurring charges that are paid to cover future eligible charges or the covered charges themselves. This exclusion helps prevent double counting of these charges in the aggregation.
+
+When looking at List Cost or Contracted Cost, apply a filter to the Charge Category (purchase or usage) before summing the column to prevent double counting of charges. 
+
+Analyst Application
+
+You can use the Billing columns to reconcile invoices, calculate savings, track spending trends, and validate pricing.
+
+SAVINGS CALCULATION: 
+SELECT SUM(ContractedCost) - SUM(EffectiveCost) AS CommitmentSavings,
+SUM(ListCost) - SUM(ContractedCost) AS NegotiatedSavings 
+FROM focus_data 
+WHERE BillingPeriodStart >= '2026-01-01' 
+AND BillingPeriodEnd < '2026-02-01'
+
+Effective Cost versus Contracted Cost Example
+
+Let's say you pre-purchase a $1 per hour virtual machine (VM) instance with a commitment discount that provides a 30% and is paid all upfront. Since the VM was pre-purchased, 100%, you will pay for it now, and next month's Billed Cost will be $0 because it was paid last month. Once you apply the amortized rate, you end up with an Effective Cost of $0.70 per hour.
+
+Now let's talk about negotiated discounts. You have a negotiated discount with the CSP of 5% for all purchases. Therefore, you will never pay the List Cost ($1). You will always pay (List Cost * 95%) for OnDemand usage. This becomes the Contracted Cost ($0.95). 
+
+It is important to understand that the full effective cost is $0.70, but the savings is not $0.30. A savings of $0.30 would be comparing the List Cost to the Effective Cost. However, you will never pay the List Cost because of the 5% negotiated discount. To figure out the savings for the commitment-based discount, you will need to compare Effective Cost and Contrated Cost to eliminate the 5% negotiated discount. This answers the question, "How much did I save by purchasing this commitment-based discount compared to not buying the discount?" The comparison needed is between Effective Cost and Contracted Cost. In this example, the savings for the commitment-based discount would be $0.25. 
+
+Best Practices for Billing Cost Columns: 
+Use Billed Cost for invoice reconciliation only
+Billed Cost matches what appears on invoices. Do not use it for resource attribution or trend analysis involving commitment discounts.
+Use Effective Cost for spend analysis and allocation
+Effective Cost distributes prepaid purchases to consuming resources. Use it for chargeback, showback, and cost optimization analysis.
+Validate unit price math on sample rows
+Confirm that List Unit Price × Pricing Quantity = List Cost and Contracted Unit Price × Pricing Quantity = Contracted Cost. Discrepancies indicate data quality issues.
+Separate negotiated and commitment savings
+List Cost vs. Contracted Cost measures negotiation effectiveness. Contracted Cost vs. Effective Cost measures commitment discount value.
+Track Consumed Quantity for usage optimization
+Consumed Quantity reflects actual resource usage independent of pricing. Use it to identify optimization opportunities without rate fluctuations distorting the picture.
+Handle multi-currency data explicitly
+Group or filter by Billing Currency before aggregating costs. Summing USD and EUR charges without conversion produces incorrect totals.
+
+### Pricing
+
+Pricing metrics answer, "What are we being billed for?", not "What did we use?" The columns related to pricing provide details about how a service provider has priced each resource and help analysts understand how each line item is priced. Cost is calculated using this basic formula: 
+
+Time or Usage * Rate = Cost
+Pricing Quantity * Unit Price = Cost 
+
+The Pricing Quantity column provides the time or usage side. List Unit Price, Contracted Unit Price, or calculated variations of these columns provide the Rate information. Pricing Category identifies the pricing model (Standard, Committed, Dynamic, Other). Unit prices (List Unit Price, Contracted Unit Price, derived Billed Unit Price, and Effective Unit Price) show rates at different discount stages. Together, these enable unit economics, savings calculations, and optimizations analysis. Learn more about the columns in this category below:
+
+PRICING CATEGORY
+
+Describes the pricing model used for a charge at the time of use or purchase. Pricing Category can be useful for distinguishing between charges incurred at the list unit price or a reduced price and exposing optimization opportunities, like increasing commitment-based discount coverage.
+
+Normalized Column with Allowed Values: 
+
+Standard: Charges priced at the agreed upon rate for the billing account, including negotiated discounts. This pricing includes any flat rate and volume/tiered pricing but does not include dynamic pricing or reduced pricing due to the application of a commitment discount. This does include the purchase of a commitment discount at agreed upon rates.
+
+Dynamic: Charges priced at a variable rate determined by the provider. This includes any product or service with a unit price the provider can change without notice, like interruptible or low priority resources.
+
+Committed: Charges with reduced pricing due to the application of the commitment discount specified by the Commitment Discount ID.
+
+Other: Charges priced in a way not covered by another pricing category.
+
+PRICING QUANTITY
+
+The volume of a given SKU associated with a resource or service used or purchased, based on the Pricing Unit. This is distinct from Consumed Quantity, as it focuses on pricing and cost, not resource and service consumption.
+
+Pricing Quantity forms the Usage part of Time or Usage x Rate = Cost. In the FinOps practice, we can impact cloud spend by paying less for what you use (rate reduction). Take advantage of cloud discount pricing models such as Savings Plans (AWS, Azure), Reserved Instances (AWS, Azure), and Committed Use Discounts (GCP) based on usage data from FOCUS conformed datasets.
+
+PRICING UNIT
+
+Provider-specified measurement unit for determining unit prices, indicating how the provider rates measured usage and purchase quantities after applying pricing rules like block pricing.
+
+Examples: 
+
+Number of hours for compute appliance runtime (e.g., Hours)
+
+Gigabyte-hours for a storage appliance (e.g., GB-Hours)
+
+Accumulated count of requests for a network appliance or API service (e.g., 1,000 Requests)
+
+Why This Matters
+
+Pricing Quantity is what you're billed for, while Consumed Quantity is what you used. Confuse them and your unit economics are wrong.
+
+For example, let's say you're using block pricing. You pay for 1,000 hours, but only use 501 of those hours. That's Pricing Quantity = 1,000, and Consumed Quantity = 501. Calculate cost per hour using Consumed Quantity and you show $2.50/hour, when you're actually paying $5.00/hour. If Finance catches the error, then your credibility may drop. Understanding pricing mechanics is mandatory for accurate financial analysis.
+
+
+There are also several currency-related columns in FOCUS specification: 
+
+Pricing Currency
+The national or virtual currency denomination that a resource or service was priced in.
+Pricing Currency is commonly used in scenarios where different currencies are used for pricing and billing.
+
+Pricing Currency Contracted Unit Price 
+The Pricing Currency Contracted Unit Price represents the agreed-upon unit price for a single Pricing Unit of the associated SKU, inclusive of negotiated discounts, if present, while excluding negotiated commitment discounts or any other discounts. This price is denominated in the Pricing Currency. When negotiated discounts do not apply to unit prices and instead are applied to exchange rates, the Pricing Currency Contracted Unit Price defaults to the Pricing Currency List Unit Price. The Pricing Currency Contracted Unit Price is commonly used to calculate savings based on negotiation activities.
+
+Pricing Currency Effective Cost
+Represents the cost of the charge after applying all reduced rates, discounts, and the applicable portion of relevant, prepaid purchases (one-time or recurring) that covered this charge, as denominated in Pricing Currency.This allows the FinOps Practitioner to perform a conversion from either: a national currency to a virtual currency (e.g., tokens to USD), or
+one national currency to another (e.g., EUR to USD).
+
+Pricing Currency List Unit Price
+Represents the suggested provider-published unit price for a single Pricing Unit of the associated SKU, exclusive of any discounts. This price is denominated in the Pricing Currency.
+The Pricing Currency List Unit Price is commonly used for calculating savings based on various rate optimization activities.
+
+Analyst Application
+
+You can use the Pricing columns to validate rates, understand pricing models, analyze virtual currency scenarios, and verify cost calculations.
+
+Sample Full Pricing Currency Analysis: A FinOps Practitioner is analyzing a SaaS provider that uses a token-based pricing model. The provider bills in USD but prices usage in tokens. The practitioner needs to understand both the token consumption rate and the dollar cost.
+
+
+SELECT ServiceName, PricingCurrency, PricingUnit, 
+
+SUM(PricingQuantity) AS TotalTokens, 
+
+SUM(PricingCurrencyEffectiveCost) AS TokenCost, 
+
+SUM(EffectiveCost) AS USDCost 
+
+FROM focus_data 
+
+WHERE ProviderName = 'Acme SaaS' 
+
+AND BillingPeriodStart >= '2026-01-01' 
+
+AND BillingPeriodEnd < '2026-02-01' 
+
+GROUP BY ServiceName, PricingCurrency, PricingUnit
+
+Best Practices
+
+Use Pricing Quantity for all cost calculations
+Pricing Quantity is the billing basis. Always divide cost by Pricing Quantity for unit economics, never by Consumed Quantity unless you want consumption efficiency metrics.
+
+Filter Charge Category when aggregating Pricing Quantity
+When aggregating Pricing Quantity for commitments, include Usage for utilization and Purchase for commitment size. Never include both together or you will double count.
+
+Group by Pricing Unit before aggregating
+Never sum across different units. Hours ≠ GB ≠ Credits. Always group by unit before aggregating Pricing Quantity or cost.
+
+Use Pricing Category to identify optimization opportunities
+Standard means potential commitment coverage. Committed is already optimized. Dynamic requires you to consider risk tolerance and volatility
+
+Understand your pricing strategy
+Understand your pricing strategy by comparing Pricing Quantity to Consumed Quantity. Large divergence between them usually signals block or stair step pricing and a potential optimization opportunity.
+
+Report Pricing Quantity to Finance, Consumed Quantity to Engineering
+Finance reconciles invoices using Pricing Quantity. Engineers optimize resources using Consumed Quantity. Provide both views so each team can work from the data they trust.
+
+### Account Columns
+
+Overview
+
+Account columns establish the organizational hierarchy for billing data. FOCUS defines a two-tier structure: billing accounts (where invoices are generated) and sub accounts (where resources and services are deployed). 
+
+Each tier includes three columns that work as a set:
+
+ID: Provider-assigned unique identifier
+
+Name: Human-readable display name
+
+Type: Provider-defined classification (introduced in v1.2)
+
+The billing account represents the financial relationship with the provider. Sub accounts represent logical groupings beneath that relationship, used for access control, cost management, or organizational structure.
+
+
+Billing Account ID
+An identifier assigned by the data generator for a billing account. 
+Billing accounts are commonly used for scenarios like grouping based on organizational constructs, invoice reconciliation, and cost allocation strategies.
+
+Billing Account Name
+A display name assigned to a billing account. 
+A friendly name, if available from your provider, that can be beneficial for display purposes and reports. 
+
+Billing Account Type
+A provider-assigned name to identify the type of billing account.
+Billing Account Type is commonly used for scenarios like mapping FOCUS and provider constructs, summarizing costs across providers, or invoicing and chargeback.
+
+Sub Account ID
+A provider-assigned identifier assigned to a sub account that helps provide organizational hierarchy. Sub Account ID is commonly used for scenarios like grouping based on organizational constructs, access management needs, and cost allocation strategies. (for Microsoft it's resource grouping, access management and cost segregation) 
+
+Sub Account Name
+A display name assigned to a sub account. Sub Account Name is commonly used for scenarios like grouping based on organizational constructs, access management needs, and cost allocation strategies.
+
+Sub Account Type
+A provider-assigned name to identify the type of sub account. Sub Account Type is a readable display name and not a code.
+Sub Account Type is commonly used for scenarios like mapping FOCUS and provider constructs, summarizing costs across providers, or invoicing and chargeback.
+
+The billing account represents the financial relationship with the provider. Sub accounts represent logical groupings beneath that relationship, used for access control, cost management, or organizational structure.
+
+Why This Matters
+
+Allocation and chargeback depend on accurate account attribution. Without reliable account identifiers, you cannot assign costs to business units, departments, or cost centers. These six columns are the foundation for any organizational cost reporting.
+
+Multi-account environments are the norm, not the exception. Large enterprises routinely operate dozens or hundreds of accounts across providers. These columns let analysts aggregate, filter, and compare costs across complex account hierarchies.
+
+The ID/Name/Type pattern repeats throughout FOCUS. Understanding how these three elements work together here prepares you for similar patterns in other column groupings (Commitment Discount, for example).
+
+Type columns bridge FOCUS and provider-native terminology. Billing Account Type and Sub Account Type (both conditional, added in v1.2) surface provider-specific account classifications. Analysts use these to map FOCUS data back to provider consoles and documentation.
+
+Nullability rules enforce data integrity. When Sub Account ID is null, Sub Account Name and Sub Account Type must also be null. When Sub Account ID has a value, Name and Type must not be null. These constraints prevent orphaned or inconsistent account metadata.
+
+Analyst Application
+
+Analysts can use the Account columns to allocate costs across organizational boundaries, reconcile charges to invoices, and identify cost ownership.
+
+Example: A FinOps Practitioner is building a monthly chargeback report for Finance. They query Billed Cost grouped by Billing Account ID alone. The report shows $2M in total spend, but Finance asks which departments own that spend.
+
+SELECT BillingAccountId, BillingAccountName, SubAccountId, SubAccountName,
+SUM(BilledCost)
+FROM focus_data
+GROUP BY BillingAccountId, BillingAccountName, SubAccountId, SubAccountName
+
+Best Practices
+1. Always include both ID and Name columns in reports.
+IDs ensure uniqueness; Names provide readability. Reports need both for accuracy and usability.
+2. Use Sub Account ID for granular cost allocation.
+Billing account alone is too coarse for most chargeback scenarios. Sub accounts map to teams, projects, or environments.
+3. Leverage Type columns for multi-provider normalization.
+Billing Account Type and Sub Account Type help standardize reporting across providers with different account terminology.
+4. Filter by Billing Account ID for invoice reconciliation.
+Each billing account corresponds to a billable relationship. Match Billed Cost totals to invoices at this level.
+5. Validate null patterns in sub account columns.
+If Sub Account ID is populated, Name and Type must not be null. Violations indicate data quality issues.
+6. Document account-to-owner mappings outside FOCUS.
+FOCUS provides the structure; your organization provides the business context. Maintain a reference table linking Sub Account ID to cost centers
+
+
+### Capacity Reservations
+
+Overview
+
+Capacity reservations are agreements that secure dedicated resources for a specified period, which organizations use to guarantee capacity during peak demand (like Cyber Monday, tax season, or for a product launch). Unlike commitment discounts (which provide pricing discounts), capacity reservations guarantee resource availability, and you're charged for the reserved capacity regardless of actual consumption. Common examples include AWS Capacity Reservations, GCP Reservations, and Azure Capacity Reservations.
+
+Capacity Reservation ID
+Purpose: Uniquely identify a specific capacity reservation.
+
+Type: Dimension
+
+Uses:
+
+Tracking specific reservations over time
+
+Calculating utilization per reservation
+
+Identifying which reservations are underutilized
+
+Grouping charges by reservation for cost allocation
+
+Capacity Reservation Status
+Purpose: Indicate whether capacity was used or unused.
+
+Type: Dimension
+
+Uses:
+
+Calculating utilization percentage
+
+Identifying waste (sum of Unused charges)
+
+Optimization targeting (which reservations consistently show Unused rows)
+
+Rightsizing reservations (reduce capacity of consistently unused)
+
+Allowed Values: Used, Unused 
+
+
+Why This Matters
+
+Capacity reservations secure dedicated infrastructure, guaranteeing resource availability when you need it. This prevents "capacity not available" failures during peak demand. Unlike on-demand, you pay for reserved capacity continuously, whether you use it or not. You must be able to track utilization in order to be able to identify waste.
+
+🔑  Key Concept
+CapacityReservationStatus makes waste visible. Track it, measure it, fix it. Ignore it and you're paying for capacity you don't use.
+
+
+Analyst Application
+
+You can use the Capacity Reservations columns to determine the percentage of reserved capacity actually used, identify the dollar value of any unused reserved capacity, and find reservations with persistent low utilization for rightsizing. Below are two sample use cases and the associated queries:
+a. Analyze capacity reservations on compute costs - https://focus.finops.org/use-case/analyze-capacity-reservations-on-compute-costs/ 
+b. Identify unused capacity reservations - https://focus.finops.org/use-case/identify-unused-capacity-reservations/ 
+
+Valid Utilization Calculation:
+❌ Invalid Utilization Calculation:
+SUM(CASE WHEN Status = 'Used' THEN ConsumedQuantity ELSE 0 END) / <br>SUM(ConsumedQuantity)
+
+Why: Used / (Used + Unused) = utilization percentage. Separates actual usage from wasted capacity.
+
+Best Practices:
+
+1. Always separate Used from Unused in utilization calculations.
+Used / (Used + Unused) = utilization. 
+Both components are required for an accurate percentage
+2. Monitor utilization trends over time.
+A single snapshot can be misleading. Track daily/weekly utilization to identify patterns.
+3. Calculate utilization per Capacity Reservation ID, not in aggregate.
+Aggregating masks underutilization. Individual reservation tracking reveals optimization targets.Provide your feedback on BizChat
+4. Filter Charge Category = 'Usage' for capacity reservations.
+Capacity reservations only appear in Usage rows. Purchase rows don't exist.
+5. Use Unused rows to identify rightsizing opportunities.
+Consistently unused capacity represents an opportunity to reduce or cancel reservations.
+6. Compare reservation cost vs. on-demand equivalent.
+Calculate if reservation actually saves money. Low utilization may make on-demand cheaper.
+
+### Charge
+
+
+Overview
+
+Charge columns classify and describe individual line items in billing data. They answer fundamental questions about each row: What type of charge is this? Is it a correction? How often does it occur? What is it for?
+
+Charge Category
+The highest-level classification of a charge based on the nature of how it is billed
+
+Normalized Column with Allowed Values: 
+
+Purchase: Positive or negative charges for the acquisition of a service or resource bought upfront or on a recurring basis including refunds
+Tax: Positive or negative charges based on the quantity of a service or resource that was consumed over a given period of time including refunds
+Usage: Charges based on the quantity of a service or resource that was consumed over a given period of time
+Credit: Positive or negative charges granted by the provider for various scenarios (e.g promotional credits or corrections to promotional credits)
+Adjustment: Positive or negative charges the provider applies that do not fall into other category value
+
+Charge Class
+Indicates whether the row represents a correction to a previously invoiced billing period. It will contain a value of correction when this line of the billing data is making a correction to a previous billing period. This is important for an analyst to be able to differentiate and filter between corrections and regularly incurred charges. 
+Normalized Column with Allowed Values:
+Correction: Correction to one or more charges invoiced in previous billing periods (e.g., refunds and credit modifications).
+Null: a value of NULL represents a normal charge (i.e., a non-correction).
+
+Charge Description
+Self-contained summary of the charge's purpose and price. A Charge Description provides a high-level context of a row without requiring additional discovery. It typically covers a select group of corresponding details across a billing dataset or provides information not otherwise available
+
+Charge Frequency
+Indicates how often a charge will occur.
+Normalized Column with Allowed Values:
+One-Time: Charges that only happen once and will not repeat. One-time charges are typically recorded on the hour or day when the cost was incurred.
+Recurring: Charges that repeat on a periodic cadence (e.g., weekly, monthly) regardless of whether the product or service was used. Recurring charges typically happen on the same day or point within every period. The charge date does not change based on how or when the service is used.
+Usage-Based: Charges that repeat every time the service is used. Usage-based charges are typically recorded hourly or daily, based on the granularity of the cost data for the period when the service was used (referred to as charge period). Usage-based charges are not recorded when the service is not used.
+Examples: Listed below are example scenarios with the related ChargeFrequency.
+Upfront commitment purchase - One-Time
+Ad-hoc usage charges - Usage-Based
+Monthly commitment fee - Recurring
+
+Charge Category and Charge Class are normalized columns with fixed allowed values. Charge Frequency is also normalized. Charge Description is free-form text provided by the provider.
+
+Why This Matters
+
+Charge columns are the foundation for every cost analysis. If you misclassify a $100K commitment purchase as usage, your utilization analysis breaks. If you forget to filter corrections, last month's $50K refund distorts this month's trend analysis. If you misunderstand ChargePeriod vs. BillingPeriod, your accrual-basis reporting will be wrong by thousands of dollars.
+
+Charge Period Start and Charge Period End* define when the charge was incurred, which differs from Billing Period (when invoiced).
+
+Charge Description provides human-readable context. Use it for initial investigation, then filter on normalized columns for aggregation.
+
+ChargeClass MUST be null for non-corrections or same-period corrections. ChargeClass MUST be "Correction" when not null. Always filter corrections using WHERE ChargeClass IS NULL for operational analysis.
+
+Analyst Application
+An Analyst can use the Charge columns to: 
+Understand costs over time to know when charges will come in
+Look at a Charge Description to understand a charge itself 
+Differentiate between corrections and regularly incurred charges
+Group costs into different categories (e.g. these are purchases, these are usage-based billing)
+Create better forecasting models based on identifying an item's Charge Frequency
+Broadly categorize charges using Charge Category
+
+Best Practices: 
+1. Always filter corrections for operational analysis
+Include WHERE ChargeClass IS NULL in every query analyzing current spending patterns, trends, or forecasts. Analyze corrections separately to track billing adjustments.
+2. Use Charge Category before Charge Frequency
+Filter by category first to narrow scope, then refine by frequency.
+Example: Find recurring purchases, not purchases that are recurring
+3. Don't filter by Billed Cost sign
+Negative charges exist for refunds, while positive charges exist for usage.
+Use Charge Category instead of assuming cost sign indicates charge type.
+
+### Charge Origination
+
+Overview
+Charge Origination columns answer three fundamental questions about every charge: Who made it available? Who built it? Who invoiced you for it? FOCUS captures these distinct roles because modern procurement involves multiple parties.
+
+Provider
+The name of the entity that made the resources or services available for purchase.
+
+Publisher
+The name of the entity that produced the resources or services that were purchased.
+This is synonymous with companies that publish books that are available for purchase at a bookstore. The company that created the book is known as the "publisher", just as the company that produced the resources you've purchased is the "publisher" of those resources.
+
+Invoice Issuer
+The name of the entity responsible for invoicing for the resources or services consumed.
+
+Invoice ID
+A provider-assigned identifier for an invoice encapsulating some or all charges in the corresponding billing period for a given billing account.
+
+In simple scenarios, all three entities are identical. When you purchase compute directly from a provider, the provider, publisher, and invoice issuer are all the same company. But marketplace purchases, reseller arrangements, and managed service provider relationships create scenarios where these parties diverge.
+
+Why This Matters
+
+Procurement channels are rarely simple. Organizations purchase cloud services directly, through resellers, via marketplaces, and from Managed Service Providers (MSPs)
+
+These columns let analysts trace spend back to its source regardless of purchasing complexity.
+
+Invoice reconciliation requires knowing who billed you. Invoice Issuer identifies the entity that generated the invoice. When you purchase a third-party SaaS product through a cloud marketplace, the cloud provider is the Invoice Issuer even though a different company is the Publisher.
+
+Publisher reveals the true product source. Marketplace and reseller scenarios obscure who actually built the product. Publisher cuts through that ambiguity. Use it to answer questions like "How much are we spending on software from this vendor across all procurement channels?"
+
+Provider identifies the distribution channel. Whether you bought through a cloud provider, an MSP, or directly from a SaaS vendor, Provider tells you who made the purchase possible. Use it to analyze channel-specific spend and evaluate procurement strategies.
+
+Invoice ID enables precise reconciliation. The sum of Billed Cost for a given Invoice ID must match the payable amount on the corresponding invoice. This column is Recommended (not Mandatory) but essential for organizations that need audit-grade reconciliation.
+
+Best Practices
+1. Use Publisher for true vendor spend analysis.
+Publisher identifies who built the product. Use it to consolidate spend by vendor across procurement channels.
+2. Use Invoice Issuer for payment reconciliation.
+Invoice Issuer identifies who you pay. Match Billed Cost totals against invoices from this entity.
+3. Expect all three to match for direct purchases.
+When purchasing directly, Provider, Publisher, and Invoice Issuer are typically identical. Divergence indicates marketplace or reseller involvement.
+4. Use Invoice ID for audit-grade reconciliation.
+Sum Billed Cost by Invoice ID to validate against payable invoices. Note that Invoice ID is Recommended, not Mandatory, and may be null for some charges.
+5. Analyze Provider to evaluate procurement channels.
+Provider shows where you purchased, not who built it. Use to compare spend through MSPs versus direct procurement versus marketplaces.
+6. Document scenarios where values diverge.
+Marketplace purchases and MSP arrangements create complex origination patterns. Document your organization's scenarios to avoid confusion.
+
+### Commitment Discounts
+
+Overview
+
+Commitment Discount columns are specifically related to the FinOps Principle: FinOps should be enabled centrally. In support of this FinOps Principle, rate, commitment, and discount optimization are centralized to take advantage of economies of scale. These columns help identify which commitment discount is being applied when you purchase an item, for example, Savings Plans and Reserved Instances. This will enable analysts to report around utilization and use of commitment discounts in your bills. 
+
+### Location
+
+### Resource
+
+Resource columns identify the specific technology assets that generate charges. They enable granular cost attribution, optimization analysis, and operational correlation between billing data and infrastructure.
+
+Resource ID
+Identifier assigned to a resource by the provider that uniquely identifies individual resources.
+Null values are expected for non-resource charges. Tax charges, credits, adjustments, and some service-level fees are not tied to specific resources. When Resource ID is null, Resource Name and Resource Type must also be null.
+
+Resource Name
+Human-readable display name assigned to a resource.
+
+Resource Type
+The kind of resource the charge applies to.
+For example, Virtual Machine, Load Balancer, or Storage Bucket
+
+Tags
+A JSON object containing key-value pairs of metadata assigned to the resource, including both user-defined and provider-defined tags.
+Tags are commonly used for scenarios like adding business context to billing data to identify and accurately allocate charges. Tags may also be referred to by providers using other terms such as labels.
+Tags are finalized before appearing in FOCUS data. When tags are defined at multiple levels (account, folder, resource), the provider applies inheritance rules to produce a single finalized value for each key. The Tags column contains only these finalized, deduplicated values.
+
+Resource ID is the anchor for resource-level analysis. Resource Name provides readability. Resource Type enables grouping across similar infrastructure. Tags add business context for allocation and reporting. 
+
+Why This Matters
+
+Resource-level granularity enables true cost optimization. Account-level or service-level analysis cannot identify which specific virtual machine is over-provisioned or which storage bucket is growing unexpectedly. Resource ID provides the precision needed for actionable optimization.
+
+Tags are the bridge between infrastructure and business context. Without tags, billing data lacks information about cost centers, applications, environments, or owners. Tags enable chargeback, showback, and accountability by connecting charges to organizational structures.
+
+Resource Type normalizes across provider terminology. Different providers use different names for similar resources. Resource Type provides a consistent classification that enables cross-provider analysis of infrastructure categories.
+
+Best Practices" 
+
+1. Match the column to your use case
+
+Use Resource ID for precise resource tracking.
+
+Resource ID is unique within a provider. Use it for joins, deduplication, and correlating billing data with operational systems.
+
+Use Resource Name for human-readable reports.
+
+Resource ID is often opaque. Include Resource Name in reports and dashboards where humans need to identify resources quickly.
+
+Group by Resource Type for infrastructure analysis.
+
+Resource Type enables analysis of infrastructure categories like "all virtual machines" or "all load balancers" without knowing specific resource identifiers.
+
+2. Handle tags well
+
+Parse Tags as JSON, not strings.
+
+Tags is a JSON column. Use JSON functions (JSON_EXTRACT, JSON_VALUE, etc.) to access specific tag keys. String matching on the raw column is unreliable.
+
+Account for tag inheritance in your analysis.
+
+Tags in FOCUS are finalized. A resource inherits tags from parent constructs unless it has its own value for that key. Understand your provider's inheritance rules.
+
+3. Expect nulls
+Expect null Resource ID for non-resource charges.
+Tax, credits, adjustments, and account-level fees have null Resource ID. Filter these out for resource-level analysis, or handle them separately in allocation logic.
+
+
+
+### Service
+
+Service columns classify provider offerings at multiple levels of granularity. They enable analysis of what you purchased, organized from broad functional categories down to specific product names.
+
+Service Category
+The highest-level classification based on the service's core function.
+
+Normalized column with allowed values including Compute, Storage, Networking, Databases, AI and Machine Learning, Analytics, Security, and others.
+
+"Other" values exist for edge cases. When a service does not fit existing categories or subcategories, "Other" is used. The Service Category "Other" captures new or emerging services. Each category also has an "Other" subcategory (e.g., "Other (Compute)") for services that do not fit defined subcategories.
+
+Service Name
+The provider-specific name of the offering that was purchased.
+
+For example: "Amazon EC2", "Azure Virtual Machines", "Cloud SQL".
+
+Each Service Name has exactly one Service Category. A service cannot belong to multiple categories. If a database service includes compute, storage, and networking charges, those charges still have Service Category = "Databases" because that is the service's primary purpose.
+
+
+Sevice Subcategory 
+A secondary classification within the Service Category, providing more specific workload type information.
+For example: "Virtual Machines" under Compute, "Relational Databases" under Databases.
+Service Subcategory has a parent-child relationship with Service Category. Each subcategory belongs to exactly one category. For example, "Virtual Machines" is always under "Compute"; "Relational Databases" is always under "Databases". Invalid combinations indicate data quality issues.
+
+Service Category and Service Subcategory are normalized with fixed allowed values defined by FOCUS. Service Name is provider-defined and reflects how each provider names their offerings.
+
+Why This Matters
+
+Service Category enables cross-provider comparison. Different providers use different names for similar offerings. Service Category normalizes these into consistent functional groups. "EC2", "Azure Virtual Machines", and "Compute Engine" all map to Service Category = "Compute", enabling multi-cloud analysis.
+
+Service Subcategory adds workload-type precision. Service Category alone is too broad for some analyses. Knowing that costs fall under "Compute" does not distinguish between virtual machines, containers, and serverless functions. Service Subcategory provides that distinction with values like "Virtual Machines", "Containers", and "Serverless Compute".
+
+Service Name provides provider-specific detail. When investigating anomalies or drilling into specific offerings, Service Name identifies the exact product. Use it for provider-specific analysis, trend investigation, and correlation with provider documentation.
+
+Analyst Application
+
+You can use the Service columns to analyze spend by functional area, compare costs across providers, and investigate service-level trends.
+
+### SKU
+
+SKU (Stock Keeping Unit) columns provide product-level identification below the Resource level in the hierarchy. SKU Id identifies the product itself (what you're buying), and SKU Meter describes what functionality is being measured. SKU Price Id identifies the specific price point (how it's priced), and SKU Price Details provides properties as key-value pairs. Together these enable precise product identification, price verification against published lists, unit economics analysis, and SKU-specific optimization.
+
+Think of the SKU ID as the thing that you are purchasing. For example, when you go to the supermarket and purchase a loaf of bread, that loaf of bread has a SKU that allows the retailer to track all of their offerings and item details (e.g. brand, price, weight, number of slices). In the cloud+ environment, a SKU also has details about the item being purchased.
+
+
+SKU ID
+A provider-specified unique identifier that represents a specific SKU. SKUs are quantifiable goods or service offerings in a FOCUS dataset that represent specific functionality and technical specifications.
+SKU ID can be referenced on a catalog or price list published by a provider to look up detailed information about the SKU. The composition of the properties associated with the SKU ID may differ across providers. Some providers may not support the SKU construct and instead associate all such properties directly with the SKU Price.
+SKU ID is commonly used for analyzing cost based on SKU-related properties above the pricing constructs
+
+SKU Meter
+Describes the functionality being metered or measured by a particular SKU in a charge.
+Providers often have billing models in which multiple SKUs exist for a given service to describe and bill for different functionalities for that service. For example, an object storage service may have separate SKUs for functionalities such as object storage, API requests, data transfer, encryption, and object management.
+This field helps Practitioners understand which functionalities are being metered by the different SKUs that appear in a FOCUS dataset.
+Example: Object Storage Service
+SkuMeter = "Object Storage" (storage capacity)
+SkuMeter = "API requests" (read/write operations)
+SkuMeter = "Data Transfer" (egress bandwidth)
+SkuMeter = "Encryption" (encryption operations)
+
+SKU Price Details
+Represents a list of SKU Price properties (key-value pairs(opens in a new tab)) associated with a specific SKU Price ID.
+SKU Price Details helps practitioners understand and distinguish SKU Prices, each identified by a SKU Price ID and associated with a used or purchased resource or service. It can also help determine the quantity of units for a property when it holds a numeric value (e.g., CoreCount), even when its unit differs from the one in which the SKU is priced and charged, thus supporting FinOps Capabilities like Unit Economics.
+Additionally, the SKU Price Details may be used to analyze costs based on pricing properties such as terms and tiers.
+
+SKU Price ID
+A provider-specified unique identifier that represents a specific SKU Price associated with a resource or service used or purchased.
+SKU Price ID can be referenced on a price list published by a provider to look up detailed information, including a corresponding list unit price. The composition of the properties associated with the SKU Price ID may differ across providers. SKU Price ID is commonly used for analyzing cost based on pricing properties such as Terms and Tiers
+
+Why This Matters
+
+The SKU Price ID will relate to the SKU ID and the way it is priced. There might be a few different ways to purchase the same SKU ID, so the SKU Price ID identifies which pricing model is used for the purchase (e.g., purchasing at a list price, with a discount program applied, or when the unit has tiered pricing). 
+
+Without SKU identification, you can't verify prices against published rate cards. You can't compare costs for the same product across regions or commitment terms. You can't detect when providers change pricing. SKU columns connect billing data to price lists, enabling price verification, rate optimization, and detailed product-level analysis.
+
+Analyst Application
+
+Analysts can relate SKU lines to the item purchased and generally find more information about these SKUs in the price list from the provider. 
+
+Use SKU ID for product comparison, SKU Price ID for price comparison.
+SKU ID groups all pricing variations. SKU Price ID distinguishes them. Choose based on whether you're comparing products or prices.
+
+1
+Always check SKU Price Details for null before extracting properties.
+SKU Price Details is optional. Use WHERE SkuPriceDetails IS NOT NULL and COALESCE for safe extraction.
+
+2
+Include SKU Meter in SKU-level reports.
+SKU Meter provides context for what's being measured. Essential for explaining line items to stakeholders.
+
+3
+Use SKU Price ID as lookup key for price lists.
+SKU Price ID references provider's published price list. Use it to verify rates and detect pricing errors.
+
+4
+Monitor SKU ID consistency across time.
+SKU ID should be stable. If same product gets different SKU ID over time, provider changed SKU structure. Impacts time-series analysis.
+
+5
+Extract FOCUS-defined properties from SKU Price Details for standardization.
+CoreCount, MemoryGB, StorageClass enable cross-SKU comparisons. Provider-specific properties (x_ prefix) vary.
+
+6
+Group by SKU Meter when analyzing service costs.
+Services often have multiple SKUs metering different functionalities. SKU Meter reveals what drives cost within each service.
+
+
+
+
+### Timeframe
+
+Timeframe columns define when charges occur and when they appear on invoices. FOCUS separates these concepts into two distinct pairs:
+
+Billing Period Start / Billing Period End: The invoice cycle boundaries. These align to your provider's invoicing cadence, typically monthly.
+
+Charge Period Start / Charge Period End: The effective window for the charge itself. This reflects when the resource or service was actually consumed or when a purchase applies.
+
+All four columns use inclusive start bounds and exclusive end bounds. For example, a billing period from 2026-01-01T00:00:00Z to 2026-02-01T00:00:00Z includes January charges but excludes February.
+
+Billing Period Start
+A billing period is your normal cadence of invoicing from the provider.  
+
+Billing Period Start: represents the inclusive start bound (date and time) of a billing period.
+
+A time period where Billing Period Start is '2024-01-01T00:00:00Z' and Billing Period End is '2024-02-01T00:00:00Z' includes charges for January, since Billing Period Start is inclusive, but does not include charges for February since Billing Period End is exclusive.
+
+Billing Period End
+Billing Period End: represents the exclusive end bound (date and time) of a billing period.
+
+A time period where Billing Period Start is '2024-01-01T00:00:00Z' and Billing Period End is '2024-02-01T00:00:00Z' includes charges for January, since Billing Period Start is inclusive, but does not include charges for February since Billing Period End is exclusive.
+
+Additionally, some charges may apply across multiple billing periods. Charge Period start and end will match the date boundary of the effective period (the time window for which a charge is effective, inclusive of the start date and exclusive of the end date) of the charge. For example, if a purchase is usable for 12 months, the charge will appear across billing periods from: 2024-01-01T00:00:00Z to 2025-01-01T00:00:00Z. 
+
+Charge Period Start
+Charge Period Start: represents the inclusive start bound (date and time) within a charge period.
+
+The charge period will depend on the granularity of the billing data provided. If hourly billing data, the charge will be within the specified hour. If daily billing data, the charge will occur within the day. Note that the charge may not necessarily occur on the exact start time of the period start and may not necessarily end on the exact period end, but will most likely occur somewhere within the period.
+
+Charge Period End
+Charge Period End: represents the exclusive end bound (date and time) within a charge period.
+
+For example, a time period where Charge Period Start is '2024-01-01T00:00:00Z' and Charge Period End is '2024-01-02T00:00:00Z' includes charges for January 1, since Charge Period Start is inclusive, but does not include charges for January 2 since Charge Period End is exclusive.
+
+Why This Matters
+
+Billing period and charge period are not the same thing. A 12-month commitment purchased in January has a charge period spanning the full year, but appears on the January billing period. Confusing these columns leads to incorrect amortization and forecasting.
+
+Exclusive end bounds prevent double-counting. The end of one period equals the start of the next. For example, January's Billing Period End (2026-02-01) matches February's Billing Period Start. Queries using >= and < operators align naturally with this convention.
+
+Charge period granularity varies by data source. Hourly data produces charge periods of one hour; daily data produces 24-hour windows. The charge may not consume the entire period, but falls somewhere within it.
+
+Invoice reconciliation requires billing period alignment. To match FOCUS data to provider invoices, filter by Billing Period Start and Billing Period End. Charge period columns won't align to invoice totals.
+
+Trend analysis and forecasting depend on consistent period handling. Month-over-month comparisons, budget tracking, and anomaly detection all require correct use of these columns.
+
+Best Practices: 
+Use billing period for invoice reconciliation.
+Since billing period aligns to provider invoicing cycles, you can match totals against invoices using these columns.
+
+Use charge period for consumption analysis.
+Charge period reflects when usage actually occurred. Use for utilization tracking and resource optimization.
+
+Expect charge periods to span billing periods.
+
+Annual commitments, multi-month subscriptions, and prepaid purchases create charge periods longer than one billing cycle.
+
+Account for data granularity in charge periods.
+
+Hourly data produces 1-hour charge windows; daily data produces 24-hour windows. Actual consumption falls within the period, not necessarily at its boundaries.
+
+Never mix billing and charge period in the same filter.
+
+Combining these columns in a single WHERE clause produces unpredictable results. Choose one pair based on your analytical goal.
+
+
+What's Next
+
+As an analyst, understanding the FOCUS columns helps you to know what information is inside a FOCUS dataset. Before you even start thinking about filters, queries, and getting a certain set of information, you need to know these columns to know what data is there. A deep comprehension of the nuances of each column will lead you to make better queries and yield more accurate results for your data interpretation efforts. 
+
+
+## Overall Best Practices
+
+Overview & Data
+
+Whether you are using SQL, a BI Tool, or a vendor solution that allows you to customize your reports, the following best practices will apply. They are intended to help you get the results from the data you are looking for.
+
+### Start Simple
+Start simply before adding complexity, especially before applying aggregations (e.g., SUM(BilledCost)). Ask yourself, "What question am I trying to answer with this report?" Think back to Gall's Law from the FinOps Certified Practitioner course:
+
+"A complex system that works is invariably found to have evolved from a simple system that worked. A complex system designed from scratch never works and cannot be patched up to make it work. You have to start over with a working simple system." 
+
+- John Gall (1975) Systematics: How Systems Really Work and How They Fail p. 71 
+
+FOCUS Analysts should always start with a simple filter applied to the data. Then, verify the resulting billing lines that are included in the results. Continue to slowly step into the data by adding one filter at a time, looking at the results, and ensuring you are getting the values you expect by learning how the filters are applied in incremental steps.
+
+### Validate Results
+
+To build confidence in the data and in the queries you are running, it is a best practice for FOCUS Analysts to validate the results. There are multiple ways in which you can do this:
+
+1
+Validate a Small Time Range: Aligned with starting simple is the best practice to validate results over a small time range. Once you have done this, expand from there. Billing files get large—very large—so checking your work manually can be very difficult. In order to do some form of manual validation, you can restrict your query to a small time range (e.g., 1 hour) during which you may only be dealing with a few thousand rows (something your spreadsheet application can handle). Cross-checking your results in this way can provide the confidence that you have done it right. 
+
+2
+Validate Using LIMITs: In addition to validating your results over a small time range, you can also validate results with LIMITs. "LIMIT" sets the maximum number of rows that a query will return, allowing you to control the amount of data displayed or processed. For example, you could query just the first 100 lines and validate the results. If you unbounded all query results, this may produce many, many gigabytes/terabytes of data. Receiving a return result of hundreds of thousands of lines is too much for you to work with anyway. The goal is to take a peek at a portion of the data and validate the results. Setting LIMITs can also help reduce costs in situations where an organization is paying for the size of query results. 
+
+3
+Validate Against Other Tooling: If you have multiple tools (State of FinOps(opens in a new tab) data shows FinOps Practitioners use an average of 4.1 tools), you can use those tools to validate the data. If you've created a report in one tool, can you create the same report in another tool to validate? If so, then getting the same result across tools allows you to build confidence in the data and the queries you are running. For example, using a combination of FinOps tools available, like native tools + vendor solution or in-house + native tools, you can set up reports that mirror each other as a way to validate the results you are getting in one solution. Use the multiple tools at your organization to your advantage. Note that this type of validation may not yield a direct comparison unless the tools are all producing FOCUS datasets.
+
+### Use Appropriate Filters
+
+When applying filters, use normalized columns as a preference since these will work across billing data generators. Let's say we want to look for usage lines that are a charge. To find this information, we will need to filter out any credits. Below are two filter options: 
+
+Non-optimal filter: FILTER (WHERE BilledCost > 0)
+
+Optimal filter: FILTER (WHERE ChargeCategory = "Usage")
+
+Although we could filter based on BilledCost, the most optimal filter would be to use the specific ChargeCategory column. Remember, the Charge Category is normalized, so the column will have a specified set of allowed values. Therefore, filtering for usage here will yield a more optimal result.
+
+### Use Negated Filters
+
+When looking at the data, use negated filters to identify what is being excluded. A negated filter is like filtering, but it's the opposite. Instead of selecting data that meets certain criteria, you're selecting data that doesn't meet that criteria. For example, if you have a list of all books and you use a negated filter to find books that are not novels, you'd end up with books that are anything but novels (like textbooks, poetry collections, etc.). 
+
+So, if you want to look at all costs for something, you will also want to look at a negated filter to show what you are not getting. This answers the question: "What are the things in the query not being included?" Using negated filters is a way to make sure the filter applied makes sense. 
+
+For example, if we want to look at all charges related to virtual machines, it is important to use a negated filter to see what data is being excluded when we filter for virtual machines. 
+
+```FILTER (WHERE ServiceName DOES NOT EQUAL "VirtualMachineService")```
+
+### Avoid SUBSTRING Matching (LIKE)
+
+Substring matching is commonly used in queries to filter and retrieve data based on specific patterns or sequences of characters within text fields. Substring matching is essentially finding a smaller sequence of characters (substring) within a larger sequence of characters. Imagine you have a sentence like "The quick brown fox jumps over the lazy dog." If I ask you to find the word "quick" within that sentence, you would look for the sequence of characters "quick" within the larger string. 
+
+The problem with substring matching is that it is inefficient and your results are dynamic. In other words, if a future charge doesn't match your pattern, it will not be included in the pattern. In the sentence example above, if the sentence changes to "The fast brown fox jumps over the lazy dog" then your filter will no longer be inclusive of the appropriate information. Now, there may be cases in which you use SUBSTRING (or LIKE), but if there is a more specific filter available, apply that first. 
+
+For example, consider the filters listed below. 
+
+Non-optimal filter: FILTER (WHERE ChargeDescription LIKE "VM Usage%") 
+
+Note: "VM Usage%" will look for all lines in Charge Description that start with "VM Usage", including lines with additional text afterward (e.g., included: VM Usage - Size Small; excluded: Size Small - VM Usage)
+
+Optimal filter: FILTER (WHERE ServiceName = "VirtualMachineService")
+
+We could use the non-optimal filter; however, if the charge description changes at some point, then the filter will no longer pick up lines that start with VM Usage. The optimal filter in this case would be to filter on Service Name, which is a more stable field. 
+
+### Use DISTINCT or GROUP BY
+
+DISTINCT - filters out duplicate values from the results, showing only unique entries. 
+
+GROUP BY - organizes data into groups based on specified columns, allowing for analysis and aggregation within those groups. 
+
+Cloud billing datasets can contain hundreds of thousands of lines of data. Using DISTINCT and GROUP BY will enable you to gather a set of values with a column or columns. Additionally, using GROUP BY will allow you to gather the set of values and perform aggregations on them (e.g., sum, max, min). When possible, using GROUP BY will provide more flexibility to understand details about a specific set of values. 
+
+### Gather Feedback
+
+Once you have run the queries and created the reports, it is important to seek input. Collaborate with other FinOps Personas to ensure the results that are surfaced are on the right track for the reporting question(s) being asked. For example, there are many different types of 'cost' metrics. Which cost metric does the intended audience care about? 
+
+Work with stakeholders to confirm query requirements, validate results against business expectations, and refine queries based on feedback. Start every query project with 15-minute conversation. "What are you trying to learn? What decision does this support? How will you use results?" Write down requirements before writing SQL. Share draft results early, get directional feedback and iterate.
+
+BEFORE WRITING QUERY: 
+Ask stakeholders:
+
+What business question are we answering?
+
+What decision depends on this answer?
+
+What cost metric matters? (BilledCost, EffectiveCost, ListCost, ContractedCost)
+
+What time period is relevant?
+
+What granularity is needed? (daily, monthly, per-resource, per-service)
+
+How will results be used? (dashboard, report, one-time analysis)
+
+WHEN BUILDING QUERY: 
+Share interim results:
+"Here's what the data shows for one day. Does this align with your expectations?"
+"I'm seeing these service categories. Do these groupings make sense?"
+"Cost is $X for this period. Is that the right magnitude?"
+
+WHEN PRESENTING RESULTS: 
+Present results with context:
+Show row counts: "Analysis includes 1.2M charges across 50 services."
+Explain filters: "Excluded credits and corrections per your requirements."
+Highlight surprises: "VM costs were 40% higher than expected, should we investigate?"
+Ask for validation: "Does this match your understanding of our usage?"
+
+REFINE ITERATIVELY: 
+Be prepared to iterate based on feedback. Common feedback patterns include:
+"Can you break this down by team?"
+Add grouping: GROUP BY SubAccountName
+"This number seems high."
+Check filters: Are credits excluded? Are corrections included?
+Verify time range: Full month vs partial month?
+"We need to see commitments separately."
+Add filter: WHERE PricingCategory = 'Commitment-Based'
+Or create separate queries for different pricing categories
+
+### Be Mindful of Date Ranges
+
+When running queries, pay close attention to the date ranges being applied. Remember that start dates are inclusive and end dates are exclusive. Additionally, be aware of the data surfaced by queries across month boundaries, year boundaries, or even results surfaced for months with fewer days, like February. When it comes to cloud billing, a month is not a month. 
+
+Put It All Together
+
+These best practices are meant to be used not in isolation, but together to create and customize reports. For example, you might be filtering on a column and adding DISTINCT or GROUP BY as well. Whichever filters and queries you apply to the dataset, remember that it is always important to validate your results to ensure confidence in the data.
+
