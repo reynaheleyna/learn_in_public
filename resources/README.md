@@ -12,4 +12,5 @@ A collection of articles, videos, books, and reference links that help with Java
 - [SQLBolt](https://sqlbolt.com/)
 - [Mode SQL Tutorials](https://mode.com/sql-tutorial/)
 
-Add more as you discover new favorites!
+## FinOps - FOCUS
+- 
