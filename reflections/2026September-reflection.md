@@ -8,3 +8,15 @@ I learned about Tiktoken as a potential library tool for tokenomics forays in th
 09/11/2026
 I really have to brush up my SQL this year! It looks like I am ready for it anyway. :) 
 
+09/14/2026
+I tried a different thing in my learning plan last weekend. I think it will work, I am moving at my pace and aiming for depth and craftmanship. 
+
+Functional Agent Layers: 
+1. Persona
+2. Tools and Actions 
+3. Reasoning and Planning
+4. Knowledge and Memory 
+5. Evaluation and Feedback 
+
+
+
