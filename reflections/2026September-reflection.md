@@ -18,5 +18,15 @@ Functional Agent Layers:
 4. Knowledge and Memory 
 5. Evaluation and Feedback 
 
+Pegs DS gen:
+1. https://www.kaggle.com/datasets/rishi2123/oragnizations-expenses-2023-2024/data 
+2. https://github.com/sairashaik6677/azure-costmanagement-dashboard 
 
+"Understanding the tools and MCP servers you provide to your agents is the floor, not
+the ceiling. Pair that understanding with the defense patterns covered earlier: tool
+allowlisting, sandboxing, output validation, rate limiting, and human-in-the-loop checkpoints for high-stakes actions." 
+
+"The right rule of thumb:reach for MCP when the tool is genuinely external (a different service, a different team’s code, a different deployment unit, or a capability you want to share across multiple agents) and prefer in-process function calls when the tool is internal logic that only
+this agent uses. Internal MCP for everything makes for clean architecture diagrams and
+noisy production systems."
 
